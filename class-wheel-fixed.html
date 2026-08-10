@@ -402,7 +402,7 @@
 <div id="entryView" style="display:none;">
   <div class="entry-wrap">
     <p class="eyebrow">You're invited</p>
-    <h1 class="event-title" id="entryEventTitle">Class Drawing</h1>
+    <h1 class="event-title" id="entryEventTitle">Wheel of niteLIFE</h1>
     <div class="ticket">
       <div class="perf top"></div>
       <div class="ticket-body">
@@ -523,7 +523,7 @@
   }
 
   async function getEventTitle(){
-    return localStorage.getItem(TITLE_KEY) || 'Class Drawing';
+    return localStorage.getItem(TITLE_KEY) || 'Wheel of niteLIFE';
   }
 
   async function listEntrants(){
@@ -662,7 +662,7 @@
       clearTimeout(titleSaveTimer);
       titleSaveTimer = setTimeout(async ()=>{
         try{
-          localStorage.setItem(TITLE_KEY, titleInput.value || 'Class Drawing');
+          localStorage.setItem(TITLE_KEY, titleInput.value || 'Wheel of niteLife');
           if(channel) channel.postMessage({type:'storage-update'});
         }catch(e){}
       }, 500);
