@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Drawing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#16233F;
+    --ink-2:#1E2F52;
+    --cream:#FBF1DD;
+    --cream-line:#E4D3AE;
+    --marigold:#F5A62E;
+    --marigold-dark:#C6820F;
+    --coral:#E8543D;
+    --sage:#4F8A6B;
+    --charcoal:#23262B;
+    --display: 'Bricolage Grotesque', system-ui, sans-serif;
+    --body: 'Inter', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--body);
+    color:var(--charcoal);
+    background:var(--ink);
+    min-height:100vh;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  button:focus-visible, input:focus-visible, a:focus-visible{
+    outline:3px solid var(--marigold);
+    outline-offset:2px;
+  }
+  ::selection{background:var(--marigold); color:var(--ink);}
+
+  /* ---------- shared ticket card ---------- */
+  .ticket{
+    background:var(--cream);
+    border-radius:18px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+    overflow:hidden;
+    position:relative;
+  }
+  .perf{
+    height:22px;
+    background:
+      radial-gradient(circle 7px at 0 50%, transparent 6px, var(--cream) 7px) 0 0/28px 100% repeat-x;
+    position:relative;
+  }
+  .perf.top{ background:
+      radial-gradient(circle 7px at 50% 100%, transparent 6px, var(--ink) 7px) 0 0/28px 100% repeat-x,
+      var(--cream);
+    height:14px;
+  }
+
+  /* ================= ENTRY VIEW ================= */
+  #entryView{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(245,166,46,0.18), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(232,84,61,0.18), transparent 40%),
+      var(--ink);
+  }
+  .entry-wrap{width:100%; max-width:420px;}
+  .eyebrow{
+    font-family:var(--body);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--marigold);
+    text-align:center;
+    margin:0 0 8px;
+  }
+  .event-title{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(28px,7vw,38px);
+    color:var(--cream);
+    text-align:center;
+    margin:0 0 26px;
+    line-height:1.05;
+  }
+  .ticket-body{padding:26px 26px 22px;}
+  .admit-one{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--marigold-dark);
+    margin:0 0 4px;
+  }
+  .ticket-headline{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:26px;
+    margin:0 0 18px;
+    color:var(--charcoal);
+  }
+  label.field-label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:#5A5340;
+    margin-bottom:6px;
+  }
+  input[type=text]{
+    width:100%;
+    padding:14px 16px;
+    font-size:17px;
+    font-family:var(--body);
+    border:2px solid var(--cream-line);
+    border-radius:10px;
+    background:#fff;
+    color:var(--charcoal);
+  }
+  input[type=text]:focus-visible{border-color:var(--marigold);}
+  .submit-btn{
+    width:100%;
+    margin-top:16px;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:var(--coral);
+    color:#fff;
+    font-family:var(--display);
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:.02em;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .submit-btn:hover{background:#d1462f;}
+  .submit-btn:active{transform:scale(.98);}
+  .submit-btn:disabled{background:#c9bfa5; cursor:default;}
+  .stub{
+    padding:16px 26px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .stub-count{font-size:13px; color:#6b6350; font-weight:600;}
+  .stub-count b{color:var(--sage); font-size:15px;}
+  .confirm{
+    display:none;
+    text-align:center;
+    padding:10px 4px 2px;
+  }
+  .confirm.show{display:block;}
+  .confirm .check{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--sage); color:#fff; display:flex;
+    align-items:center;justify-content:center;
+    font-size:26px; margin:0 auto 12px;
+  }
+  .confirm h3{font-family:var(--display); font-size:20px; margin:0 0 4px;}
+  .confirm p{margin:0; font-size:14px; color:#6b6350;}
+  .host-link{
+    display:block;
+    text-align:center;
+    margin-top:22px;
+    font-size:11px;
+    color:rgba(251,241,221,0.35);
+    text-decoration:none;
+  }
+  .host-link:hover{color:rgba(251,241,221,0.65);}
+  .err-msg{color:var(--coral); font-size:13px; margin-top:8px; display:none;}
+
+  /* ================= HOST VIEW ================= */
+  #hostView{
+    min-height:100vh;
+    padding:28px 20px 60px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(245,166,46,0.15), transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(79,138,107,0.15), transparent 45%),
+      var(--ink);
+  }
+  .host-shell{max-width:1080px; margin:0 auto;}
+  .host-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .host-eyebrow{
+    font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--marigold); margin:0 0 6px;
+  }
+  #eventTitleInput{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(26px,4vw,36px);
+    background:transparent;
+    border:none;
+    border-bottom:2px dashed rgba(251,241,221,0.25);
+    color:var(--cream);
+    padding:2px 2px 6px;
+    max-width:100%;
+    width:420px;
+  }
+  #eventTitleInput:focus-visible{outline:none; border-bottom-color:var(--marigold);}
+  .reset-btn{
+    background:transparent;
+    border:1.5px solid rgba(251,241,221,0.35);
+    color:rgba(251,241,221,0.75);
+    padding:10px 16px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .reset-btn:hover{border-color:var(--coral); color:var(--coral);}
+
+  .host-grid{
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width:860px){
+    .host-grid{grid-template-columns:1fr;}
+  }
+
+  .stage{
+    background:var(--ink-2);
+    border-radius:20px;
+    padding:36px 24px 30px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    box-shadow:inset 0 0 0 1px rgba(251,241,221,0.06);
+  }
+  .wheel-outer{
+    position:relative;
+    width:min(420px, 78vw);
+    height:min(420px, 78vw);
+    margin-bottom:8px;
+  }
+  .pointer{
+    position:absolute;
+    top:-6px; left:50%;
+    transform:translateX(-50%);
+    width:0; height:0;
+    border-left:16px solid transparent;
+    border-right:16px solid transparent;
+    border-top:26px solid var(--coral);
+    z-index:5;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,0.4));
+  }
+  .wheel{
+    width:100%; height:100%;
+    border-radius:50%;
+    position:relative;
+    box-shadow:0 0 0 8px var(--ink), 0 0 0 11px var(--marigold), 0 18px 40px rgba(0,0,0,0.5);
+    transition:transform 4.2s cubic-bezier(.17,.67,.16,1);
+  }
+  .wheel-empty{
+    width:100%;height:100%;border-radius:50%;
+    background:var(--ink);
+    box-shadow:0 0 0 8px var(--ink), 0 0 0 11px rgba(251,241,221,0.2);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:20px;
+    color:rgba(251,241,221,0.5);
+    font-size:14px;
+  }
+  .wheel-label{
+    position:absolute;
+    top:50%; left:50%;
+    transform-origin:0 0;
+    font-family:var(--body);
+    font-weight:700;
+    color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.5);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .hub{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:22%; height:22%; border-radius:50%;
+    background:var(--cream);
+    box-shadow:0 0 0 5px var(--ink), 0 4px 10px rgba(0,0,0,0.4);
+    z-index:4;
+  }
+  .spin-btn{
+    margin-top:22px;
+    padding:16px 44px;
+    border:none;
+    border-radius:12px;
+    background:var(--marigold);
+    color:var(--ink);
+    font-family:var(--display);
+    font-weight:800;
+    font-size:18px;
+    letter-spacing:.02em;
+    box-shadow:0 8px 0 var(--marigold-dark);
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .spin-btn:hover:not(:disabled){transform:translateY(2px); box-shadow:0 6px 0 var(--marigold-dark);}
+  .spin-btn:active:not(:disabled){transform:translateY(6px); box-shadow:0 2px 0 var(--marigold-dark);}
+  .spin-btn:disabled{background:#7c7362; box-shadow:0 8px 0 #5f5847; color:#c9c3b3; cursor:default;}
+
+  .side-col{display:flex; flex-direction:column; gap:20px;}
+  .panel{
+    background:var(--cream);
+    border-radius:16px;
+    padding:20px;
+  }
+  .panel h4{
+    font-family:var(--display);
+    font-size:15px;
+    margin:0 0 12px;
+    color:var(--charcoal);
+  }
+  .qr-box{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  #qrcode{background:#fff; padding:10px; border-radius:10px;}
+  .qr-hint{font-size:12px; color:#6b6350; text-align:center;}
+
+  .add-row{display:flex; gap:8px; margin-bottom:14px;}
+  .add-row input{
+    flex:1; padding:10px 12px; border-radius:8px; border:2px solid var(--cream-line); font-size:14px;
+  }
+  .add-row button{
+    padding:10px 14px; border:none; border-radius:8px; background:var(--sage); color:#fff; font-weight:700; font-size:13px;
+  }
+  .roster{
+    list-style:none; margin:0; padding:0;
+    max-height:220px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .roster li{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#fff; border:1px solid var(--cream-line);
+    border-radius:8px; padding:8px 10px; font-size:13.5px;
+  }
+  .roster li button{
+    background:none; border:none; color:#b6503e; font-size:12px; font-weight:700;
+  }
+  .roster-empty{font-size:13px; color:#8a806a; padding:6px 2px;}
+  .winners-log{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .winners-log li{
+    font-size:13.5px; background:#fff; border:1px solid var(--cream-line);
+    border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between;
+  }
+  .winners-log li span.n{font-weight:700;}
+  .winners-log li span.t{color:#8a806a; font-size:11px;}
+
+  /* ---- winner modal ---- */
+  .modal-veil{
+    position:fixed; inset:0; background:rgba(22,35,63,0.82);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    padding:20px;
+  }
+  .modal-veil.show{display:flex;}
+  .win-card{
+    background:var(--cream);
+    border-radius:20px;
+    padding:38px 34px 30px;
+    text-align:center;
+    max-width:380px;
+    width:100%;
+    position:relative;
+    box-shadow:0 30px 70px rgba(0,0,0,0.5);
+  }
+  .win-eyebrow{
+    font-family:var(--display); font-weight:700; font-size:13px;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--coral); margin:0 0 8px;
+  }
+  .win-name{
+    font-family:var(--display); font-weight:800; font-size:clamp(26px,6vw,36px);
+    color:var(--charcoal); margin:0 0 22px; word-break:break-word;
+  }
+  .win-actions{display:flex; flex-direction:column; gap:10px;}
+  .win-actions button{
+    padding:13px; border-radius:10px; border:none; font-family:var(--display);
+    font-weight:700; font-size:14.5px;
+  }
+  .win-primary{background:var(--coral); color:#fff;}
+  .win-secondary{background:transparent; border:2px solid var(--cream-line) !important; color:var(--charcoal);}
+
+  .confetti{position:absolute; top:-10px; width:8px; height:14px; opacity:.9; animation:fall 2.6s ease-in forwards;}
+  @keyframes fall{
+    to{transform:translateY(340px) rotate(340deg); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .wheel{transition:none;}
+    .confetti{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ ENTRY VIEW ============ -->
+<div id="entryView" style="display:none;">
+  <div class="entry-wrap">
+    <p class="eyebrow">You're invited</p>
+    <h1 class="event-title" id="entryEventTitle">Class Drawing</h1>
+    <div class="ticket">
+      <div class="perf top"></div>
+      <div class="ticket-body">
+        <p class="admit-one">Admit One &middot; Enter To Win</p>
+        <h2 class="ticket-headline">Add your name to the drawing</h2>
+
+        <form id="entryForm">
+          <label class="field-label" for="nameInput">Your name</label>
+          <input type="text" id="nameInput" placeholder="e.g. Jordan P." maxlength="40" autocomplete="off" required>
+          <button type="submit" class="submit-btn" id="submitBtn">Punch My Ticket 🎟️</button>
+          <p class="err-msg" id="entryErr">Something went wrong — try again.</p>
+        </form>
+
+        <div class="confirm" id="confirmBox">
+          <div class="check">✓</div>
+          <h3 id="confirmName">You're in!</h3>
+          <p>Watch the front of the room — good luck!</p>
+        </div>
+      </div>
+      <div class="perf"></div>
+      <div class="stub">
+        <span class="stub-count"><b id="liveCount">0</b> entered so far</span>
+        <span class="stub-count" style="opacity:.6;">🎡</span>
+      </div>
+    </div>
+    <a href="#host" class="host-link" id="hostToggle">host view</a>
+  </div>
+</div>
+
+<!-- ============ HOST VIEW ============ -->
+<div id="hostView" style="display:none;">
+  <div class="host-shell">
+    <div class="host-header">
+      <div>
+        <p class="host-eyebrow">Spin to win</p>
+        <input id="eventTitleInput" value="Class Drawing" maxlength="60">
+      </div>
+      <button class="reset-btn" id="resetBtn">Reset all entries</button>
+    </div>
+
+    <div class="host-grid">
+      <div class="stage">
+        <div class="wheel-outer">
+          <div class="pointer"></div>
+          <div class="wheel" id="wheel"></div>
+        </div>
+        <button class="spin-btn" id="spinBtn" disabled>Spin the Wheel</button>
+      </div>
+
+      <div class="side-col">
+        <div class="panel qr-box">
+          <h4>Scan to join</h4>
+          <div id="qrcode"></div>
+          <p class="qr-hint">Students scan this code with their phone to add their name. Host this page online for phone joining.</p>
+        </div>
+
+        <div class="panel">
+          <h4>Add a name manually</h4>
+          <div class="add-row">
+            <input type="text" id="hostAddInput" placeholder="Type a name" maxlength="40">
+            <button id="hostAddBtn">Add</button>
+          </div>
+          <ul class="roster" id="rosterList"></ul>
+        </div>
+
+        <div class="panel">
+          <h4>Past winners</h4>
+          <ul class="winners-log" id="winnersLog">
+            <li class="roster-empty">No winners yet.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WINNER MODAL ============ -->
+<div class="modal-veil" id="modalVeil">
+  <div class="win-card" id="winCard">
+    <p class="win-eyebrow">🎉 We have a winner</p>
+    <p class="win-name" id="winName">—</p>
+    <div class="win-actions">
+      <button class="win-primary" id="removeSpinAgain">Remove & Spin Again</button>
+      <button class="win-secondary" id="keepClose">Keep In Wheel & Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const PALETTE = ["#F5A62E","#E8543D","#4F8A6B","#16233F","#C6820F","#8C6FB0","#2E8FA6","#D68C45"];
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Use browser localStorage so this page works when opened as a normal HTML file.
+  // BroadcastChannel keeps multiple tabs/windows on the same computer in sync.
+  const STORAGE_PREFIX = 'class-wheel:';
+  const ENTRANTS_KEY = STORAGE_PREFIX + 'entrants';
+  const TITLE_KEY = STORAGE_PREFIX + 'event-title';
+  const WINNERS_KEY = STORAGE_PREFIX + 'winners-log';
+  const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('class-wheel-sync') : null;
+
+  function readJSON(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+
+  function writeJSON(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+    if(channel) channel.postMessage({type:'storage-update'});
+  }
+
+  async function getEventTitle(){
+    return localStorage.getItem(TITLE_KEY) || 'Class Drawing';
+  }
+
+  async function listEntrants(){
+    return readJSON(ENTRANTS_KEY, [])
+      .filter(e => e && e.key && e.name)
+      .sort((a,b)=>a.ts-b.ts);
+  }
+
+  async function addEntrant(name){
+    const clean = String(name || '').trim();
+    if(!clean) throw new Error('Name is required');
+    const entrants = await listEntrants();
+    const id = 'entrant:' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+    entrants.push({key:id, name:clean, ts:Date.now()});
+    writeJSON(ENTRANTS_KEY, entrants);
+    return id;
+  }
+
+  async function removeEntrant(key){
+    const entrants = await listEntrants();
+    writeJSON(ENTRANTS_KEY, entrants.filter(e => e.key !== key));
+  }
+
+  async function getWinnersLog(){
+    return readJSON(WINNERS_KEY, []);
+  }
+
+  async function pushWinnerLog(name){
+    const log = await getWinnersLog();
+    log.unshift({name, ts:Date.now()});
+    const trimmed = log.slice(0,50);
+    writeJSON(WINNERS_KEY, trimmed);
+    return trimmed;
+  }
+
+  function routeIsHost(){
+    return location.hash.replace('#','').toLowerCase() === 'host';
+  }
+
+  function baseJoinUrl(){
+    if(location.protocol === 'file:'){
+      return 'This page must be hosted online before students can join by QR code.';
+    }
+    return location.origin + location.pathname + location.search;
+  }
+
+  /* ================= ENTRY VIEW ================= */
+  function initEntryView(){
+    document.getElementById('entryView').style.display = 'flex';
+
+    getEventTitle().then(t => { document.getElementById('entryEventTitle').textContent = t; });
+
+    const form = document.getElementById('entryForm');
+    const nameInput = document.getElementById('nameInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const confirmBox = document.getElementById('confirmBox');
+    const confirmName = document.getElementById('confirmName');
+    const errMsg = document.getElementById('entryErr');
+    const liveCount = document.getElementById('liveCount');
+
+    async function refreshCount(){
+      const entrants = await listEntrants();
+      liveCount.textContent = entrants.length;
+    }
+    refreshCount();
+    setInterval(refreshCount, 4000);
+
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      if(!name) return;
+      submitBtn.disabled = true;
+      errMsg.style.display = 'none';
+      try{
+        await addEntrant(name);
+        form.style.display = 'none';
+        confirmName.textContent = `You're in, ${name}!`;
+        confirmBox.classList.add('show');
+        refreshCount();
+      }catch(err){
+        errMsg.style.display = 'block';
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  /* ================= HOST VIEW ================= */
+  function initHostView(){
+    document.getElementById('hostView').style.display = 'block';
+
+    const wheelOuter = document.querySelector('.wheel-outer');
+    const wheelEl = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const titleInput = document.getElementById('eventTitleInput');
+    const resetBtn = document.getElementById('resetBtn');
+    const rosterList = document.getElementById('rosterList');
+    const hostAddInput = document.getElementById('hostAddInput');
+    const hostAddBtn = document.getElementById('hostAddBtn');
+    const winnersLogEl = document.getElementById('winnersLog');
+    const modalVeil = document.getElementById('modalVeil');
+    const winName = document.getElementById('winName');
+    const removeSpinAgain = document.getElementById('removeSpinAgain');
+    const keepClose = document.getElementById('keepClose');
+
+    let entrants = [];
+    let currentRotation = 0;
+    let spinning = false;
+    let lastWinnerKey = null;
+
+    // QR code
+    const qrEl = document.getElementById('qrcode');
+    qrEl.innerHTML = '';
+    if(location.protocol === 'file:'){
+      qrEl.innerHTML = '<div style="width:148px;height:148px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;line-height:1.35;color:#6b6350;background:#fff;">QR joining needs the page to be hosted online. A file on your computer cannot be opened by students\' phones.</div>';
+    }else if(typeof QRCode === 'function'){
+      try{
+        new QRCode(qrEl, {
+          text: baseJoinUrl(),
+          width: 148,
+          height: 148,
+          colorDark: "#16233F",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }catch(e){
+        qrEl.textContent = 'QR code could not be generated.';
+      }
+    }else{
+      qrEl.textContent = 'QR code library failed to load.';
+    }
+
+    // Event title
+    getEventTitle().then(t => { titleInput.value = t; });
+    let titleSaveTimer = null;
+    titleInput.addEventListener('input', ()=>{
+      clearTimeout(titleSaveTimer);
+      titleSaveTimer = setTimeout(async ()=>{
+        try{
+          localStorage.setItem(TITLE_KEY, titleInput.value || 'Class Drawing');
+          if(channel) channel.postMessage({type:'storage-update'});
+        }catch(e){}
+      }, 500);
+    });
+
+    function renderWheel(){
+      if(entrants.length === 0){
+        wheelOuter.querySelector('.wheel')?.remove();
+        if(!wheelOuter.querySelector('.wheel-empty')){
+          const empty = document.createElement('div');
+          empty.className = 'wheel-empty';
+          empty.id = 'wheel';
+          empty.textContent = 'Waiting for entries — share the QR code to get started.';
+          wheelOuter.appendChild(empty);
+        }
+        spinBtn.disabled = true;
+        return;
+      }
+      let wheel = document.getElementById('wheel');
+      if(wheel.classList.contains('wheel-empty')){
+        wheel.remove();
+        wheel = document.createElement('div');
+        wheel.className = 'wheel';
+        wheel.id = 'wheel';
+        wheelOuter.insertBefore(wheel, wheelOuter.querySelector('.hub'));
+      }
+      const n = entrants.length;
+      const slice = 360 / n;
+      let gradientParts = [];
+      entrants.forEach((ent, i)=>{
+        const color = PALETTE[i % PALETTE.length];
+        gradientParts.push(`${color} ${(i*slice).toFixed(3)}deg ${((i+1)*slice).toFixed(3)}deg`);
+      });
+      wheel.style.background = `conic-gradient(${gradientParts.join(',')})`;
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      // labels
+      wheel.querySelectorAll('.wheel-label').forEach(el=>el.remove());
+      const fontSize = n > 24 ? 9 : n > 14 ? 11 : n > 8 ? 13 : 15;
+      const showLabels = n <= 40;
+      if(showLabels){
+        entrants.forEach((ent,i)=>{
+          const angle = slice*i + slice/2;
+          const label = document.createElement('div');
+          label.className = 'wheel-label';
+          label.style.fontSize = fontSize + 'px';
+          label.style.transform = `rotate(${angle}deg) translate(14px, -2px)`;
+          label.textContent = ent.name.length > 14 ? ent.name.slice(0,13)+'…' : ent.name;
+          wheel.appendChild(label);
+        });
+      }
+      if(!wheel.querySelector('.hub')){
+        // hub lives outside wheel in wheelOuter already
+      }
+      spinBtn.disabled = spinning || n === 0;
+    }
+
+    function renderRoster(){
+      if(entrants.length === 0){
+        rosterList.innerHTML = '<li class="roster-empty">No one has entered yet.</li>';
+        return;
+      }
+      rosterList.innerHTML = entrants.map(ent => `
+        <li>
+          <span>${esc(ent.name)}</span>
+          <button data-key="${esc(ent.key)}" class="removeEntrantBtn">remove</button>
+        </li>
+      `).join('');
+      rosterList.querySelectorAll('.removeEntrantBtn').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          await removeEntrant(btn.getAttribute('data-key'));
+          await refreshEntrants();
+        });
+      });
+    }
+
+    function renderWinnersLog(log){
+      if(!log || log.length === 0){
+        winnersLogEl.innerHTML = '<li class="roster-empty">No winners yet.</li>';
+        return;
+      }
+      winnersLogEl.innerHTML = log.slice(0,12).map(w=>{
+        const t = new Date(w.ts);
+        const timeStr = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        return `<li><span class="n">${esc(w.name)}</span><span class="t">${timeStr}</span></li>`;
+      }).join('');
+    }
+
+    async function refreshEntrants(){
+      if(spinning) return;
+      entrants = await listEntrants();
+      renderWheel();
+      renderRoster();
+    }
+
+    refreshEntrants();
+    getWinnersLog().then(renderWinnersLog);
+    setInterval(refreshEntrants, 2000);
+
+    if(channel){
+      channel.addEventListener('message', async (e)=>{
+        if(e.data && e.data.type === 'storage-update'){
+          await refreshEntrants();
+          getEventTitle().then(t => { titleInput.value = t; });
+          getWinnersLog().then(renderWinnersLog);
+        }
+      });
+    }
+
+    window.addEventListener('storage', async (e)=>{
+      if([ENTRANTS_KEY, TITLE_KEY, WINNERS_KEY].includes(e.key)){
+        await refreshEntrants();
+        getEventTitle().then(t => { titleInput.value = t; });
+        getWinnersLog().then(renderWinnersLog);
+      }
+    });
+
+    hostAddBtn.addEventListener('click', async ()=>{
+      const name = hostAddInput.value.trim();
+      if(!name) return;
+      hostAddInput.value = '';
+      await addEntrant(name);
+      await refreshEntrants();
+    });
+    hostAddInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); hostAddBtn.click(); }
+    });
+
+    resetBtn.addEventListener('click', async ()=>{
+      if(!confirm('Clear every entry from this drawing? This cannot be undone.')) return;
+      writeJSON(ENTRANTS_KEY, []);
+      await refreshEntrants();
+    });
+
+    function launchConfetti(){
+      if(reduceMotion) return;
+      const card = document.getElementById('winCard');
+      for(let i=0;i<24;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = (Math.random()*100) + '%';
+        c.style.background = PALETTE[i % PALETTE.length];
+        c.style.animationDelay = (Math.random()*0.4) + 's';
+        card.appendChild(c);
+        setTimeout(()=>c.remove(), 3200);
+      }
+    }
+
+    spinBtn.addEventListener('click', ()=>{
+      if(spinning || entrants.length === 0) return;
+      spinning = true;
+      spinBtn.disabled = true;
+
+      const n = entrants.length;
+      const slice = 360 / n;
+      const winnerIndex = Math.floor(Math.random() * n);
+      const jitter = (Math.random() - 0.5) * slice * 0.6;
+      const targetSliceCenter = winnerIndex * slice + slice / 2;
+      const fullSpins = 6 + Math.floor(Math.random()*3);
+      const currentMod = ((currentRotation % 360) + 360) % 360;
+      let delta = (360 - targetSliceCenter - currentMod + jitter);
+      delta = ((delta % 360) + 360) % 360;
+      const newRotation = currentRotation + fullSpins*360 + delta;
+
+      const wheel = document.getElementById('wheel');
+      wheel.style.transform = `rotate(${newRotation}deg)`;
+      currentRotation = newRotation;
+
+      const winner = entrants[winnerIndex];
+      lastWinnerKey = winner.key;
+
+      const onDone = async ()=>{
+        wheel.removeEventListener('transitionend', onDone);
+        spinning = false;
+        winName.textContent = winner.name;
+        modalVeil.classList.add('show');
+        launchConfetti();
+        const log = await pushWinnerLog(winner.name);
+        renderWinnersLog(log);
+      };
+      if(reduceMotion){
+        setTimeout(onDone, 50);
+      }else{
+        wheel.addEventListener('transitionend', onDone);
+      }
+    });
+
+    removeSpinAgain.addEventListener('click', async ()=>{
+      modalVeil.classList.remove('show');
+      document.querySelectorAll('.confetti').forEach(c=>c.remove());
+      if(lastWinnerKey){
+        await removeEntrant(lastWinnerKey);
+        lastWinnerKey = null;
+      }
+      await refreshEntrants();
+    });
+    keepClose.addEventListener('click', ()=>{
+      modalVeil.classList.remove('show');
+      document.querySelectorAll('.confetti').forEach(c=>c.remove());
+      spinBtn.disabled = entrants.length === 0;
+    });
+  }
+
+  function boot(){
+    if(routeIsHost()){
+      initHostView();
+    }else{
+      initEntryView();
+    }
+  }
+  window.addEventListener('hashchange', ()=>{ location.reload(); });
+  boot();
+})();
+</script>
+</body>
+</html>
