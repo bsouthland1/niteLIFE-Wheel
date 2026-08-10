@@ -403,7 +403,7 @@
 <div id="entryView" style="display:none;">
   <div class="entry-wrap">
     <p class="eyebrow">You're invited</p>
-    <h1 class="event-title" id="entryEventTitle">Class Drawing</h1>
+    <h1 class="event-title" id="entryEventTitle">Wheel of niteLIFE</h1>
     <div class="ticket">
       <div class="perf top"></div>
       <div class="ticket-body">
@@ -439,7 +439,7 @@
     <div class="host-header">
       <div>
         <p class="host-eyebrow">Spin to win</p>
-        <input id="eventTitleInput" value="Class Drawing" maxlength="60">
+        <input id="eventTitleInput" value="Wheel of niteLIFE" maxlength="60">
       </div>
       <button class="reset-btn" id="resetBtn">Reset all entries</button>
     </div>
@@ -514,13 +514,13 @@
       .select('value')
       .eq('key', 'event-title')
       .maybeSingle();
-    return data?.value || 'Class Drawing';
+    return data?.value || 'Wheel of niteLIFE';
   }
 
   async function setEventTitle(title){
     const { error } = await supabaseClient
       .from('app_settings')
-      .upsert({key:'event-title', value:title || 'Class Drawing'}, {onConflict:'key'});
+      .upsert({key:'event-title', value:title || 'Wheel of niteLIFE'}, {onConflict:'key'});
     if(error) throw error;
   }
 
@@ -686,7 +686,7 @@
     titleInput.addEventListener('input', ()=>{
       clearTimeout(titleSaveTimer);
       titleSaveTimer = setTimeout(async ()=>{
-        try{ await setEventTitle(titleInput.value || 'Class Drawing'); }catch(e){ console.error(e); }
+        try{ await setEventTitle(titleInput.value || 'Wheel of niteLIFE'); }catch(e){ console.error(e); }
       }, 500);
     });
 
